@@ -2,6 +2,8 @@
 
 A private SVG optimizer by [ConsoleLog Studio](https://consolelog.studio/). Select or paste one SVG, compare safe previews, adjust precision, and download validated output. Self-initiated studio project.
 
+[Open AssetShrink](https://assetshrink.pages.dev/) · [Source on GitHub](https://github.com/shawalkabirchy/assetshrink)
+
 The application runs entirely in the browser. It has no upload API, accounts, database, analytics, or persistent file history. Refreshing clears your source and results.
 
 ## Run locally
@@ -85,7 +87,7 @@ The selected host is Cloudflare Pages Free, connected to the public [GitHub repo
 | Production branch | `main` |
 | Runtime services | None |
 
-Use `npm run build`, rather than only `next build`, so the CSP hashes and `_headers` are generated. Upload the complete `out` directory, including `_headers` and the license notices. Do not modify generated HTML without regenerating its CSP hashes. Do not apply another CSP through a dashboard without checking the resulting policy.
+Use `npm run build`, rather than only `next build`, so the CSP hashes and `_headers` are generated. Cloudflare publishes the complete `out` directory, including `_headers` and the license notices. Do not modify generated HTML without regenerating its CSP hashes. Do not apply another CSP through a dashboard without checking the resulting policy.
 
 After editing and checking the project, publish changes through GitHub:
 
@@ -97,7 +99,7 @@ git push origin main
 
 Cloudflare builds from source and publishes `out`; generated output is excluded from Git. Keep the Free plan and provider subdomain; no paid resource is required. See the official [static Next.js guide](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-static-nextjs-site/).
 
-**Current deployment status:** publication through GitHub and Cloudflare Pages is in progress; live-host verification is pending. The local production build and 11 unit tests passed again on 26 October 2026. No deployment credentials belong in source control.
+**Current deployment status:** live at [assetshrink.pages.dev](https://assetshrink.pages.dev/), built from GitHub `main` on Cloudflare Pages Free. Hosted optimization, decoded previews, copy feedback, an actual validated download, 360 px layout, license notices, and generated CSP headers passed checks on 26 October 2026. The local production build and 11 unit tests also passed again. No deployment credentials belong in source control.
 
 After deployment, verify HTTPS, headers, worker loading, sample optimization, copy/download, refresh, and phone layout at the actual live URL. Record that URL in the case study only after a successful deployment. Use the Pages deployment history to roll back to the previous verified version; files are local to each visitor, so there is no server-side data migration or restore.
 
