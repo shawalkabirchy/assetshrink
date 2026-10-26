@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.env*
+!.env.example
+.DS_Store
+# Keep local planning documents and portfolio media outside the public source repository.
+docs/
+files/
