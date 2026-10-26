@@ -76,7 +76,7 @@ The local acceptance run passed 11 unit tests and 40 browser scenarios across Ch
 
 ## Deploy on Cloudflare Pages Free
 
-The selected host is Cloudflare Pages Free, connected to the public [GitHub repository](https://github.com/shawalkabirchy/assetshrink). Pushes to `main` trigger production builds. Use Cloudflare's **Next.js (Static HTML Export)** preset with the settings below:
+The selected host is Cloudflare Pages Free, with the public [GitHub repository](https://github.com/shawalkabirchy/assetshrink) configured as its source. Once GitHub app access is connected, pushes to `main` trigger production builds. Use Cloudflare's **Next.js (Static HTML Export)** preset with the settings below:
 
 | Setting | Value |
 | --- | --- |
@@ -100,6 +100,8 @@ git push origin main
 Cloudflare builds from source and publishes `out`; generated output is excluded from Git. Keep the Free plan and provider subdomain; no paid resource is required. See the official [static Next.js guide](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-static-nextjs-site/).
 
 **Current deployment status:** live at [assetshrink.pages.dev](https://assetshrink.pages.dev/), built from GitHub `main` on Cloudflare Pages Free. Hosted optimization, decoded previews, copy feedback, an actual validated download, 360 px layout, license notices, and generated CSP headers passed checks on 26 October 2026. The local production build and 11 unit tests also passed again. No deployment credentials belong in source control.
+
+**Automatic deployment status:** Cloudflare reports that its GitHub connection is disconnected. GitHub verification and repository-access reconnection are pending; automatic push-triggered builds have not yet been verified. The initial hosted build cloned the GitHub source successfully.
 
 After deployment, verify HTTPS, headers, worker loading, sample optimization, copy/download, refresh, and phone layout at the actual live URL. Record that URL in the case study only after a successful deployment. Use the Pages deployment history to roll back to the previous verified version; files are local to each visitor, so there is no server-side data migration or restore.
 
