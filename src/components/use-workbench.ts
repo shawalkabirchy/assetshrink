@@ -5,7 +5,7 @@ import { MAX_INPUT_BYTES } from '../lib/metrics';
 import { startOptimization } from '../lib/optimization-job';
 import { SvgError, validateInput, validateOutput } from '../lib/svg';
 
-type Status = 'idle' | 'validating' | 'ready' | 'optimizing' | 'done' | 'failed' | 'cancelled';
+export type Status = 'idle' | 'validating' | 'ready' | 'optimizing' | 'done' | 'failed' | 'cancelled';
 type State = {
   source: string;
   name: string;
@@ -22,9 +22,14 @@ export function useWorkbench() {
     source: '', name: '', baseline: null, result: null, precision: 3,
     status: 'idle', error: null, notice: '',
   });
+  // Async callbacks (validation timer, worker results) read the latest settings from here.
+  const latest = useRef(state);
+  useEffect(() => { latest.current = state; });
   const revision = useRef(0);
   const validationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeJob = useRef<ReturnType<typeof startOptimization> | null>(null);
+  // A note about how the input was loaded, announced together with the first result.
+  const loadNotice = useRef('');
 
   function stopPending() {
     if (validationTimer.current) clearTimeout(validationTimer.current);
@@ -46,11 +51,35 @@ export function useWorkbench() {
     }));
   }
 
-  function updateSource(source: string, name = state.name) {
+  async function run(baseline: string, precision: number) {
+    stopPending();
+    const ticket = revision.current;
+    let job: ReturnType<typeof startOptimization> | null = null;
+    setState(previous => ({ ...previous, precision, status: 'optimizing', error: null, notice: '' }));
+    try {
+      job = startOptimization(baseline, precision);
+      activeJob.current = job;
+      const output = await job.promise;
+      const text = await validateOutput(baseline, output);
+      if (revision.current !== ticket || activeJob.current !== job) return;
+      activeJob.current = null;
+      const notice = [loadNotice.current, 'Optimization complete. Check both preview sizes before downloading.'].filter(Boolean).join(' ');
+      loadNotice.current = '';
+      setState(previous => ({ ...previous, result: { text, precision }, status: 'done', notice }));
+    } catch (error) {
+      if (revision.current === ticket && (job === null || activeJob.current === job)) {
+        activeJob.current = null;
+        fail(error);
+      }
+    }
+  }
+
+  function updateSource(source: string, name = latest.current.name, notice = '') {
     stopPending();
     const ticket = ++revision.current;
+    loadNotice.current = notice;
     setState(previous => ({
-      ...previous, source, name, baseline: null, result: null, error: null, notice: '',
+      ...previous, source, name, baseline: null, result: null, error: null, notice,
       status: source.trim() ? 'validating' : 'idle',
     }));
     if (!source.trim()) return;
@@ -59,11 +88,13 @@ export function useWorkbench() {
         const baseline = await validateInput(source);
         if (revision.current !== ticket) return;
         setState(previous => ({ ...previous, baseline, status: 'ready' }));
+        // Optimize as soon as the input is known to be safe; the worker keeps the page responsive.
+        void run(baseline, latest.current.precision);
       } catch (error) { if (revision.current === ticket) fail(error); }
     }, 180);
   }
 
-  async function chooseFile(file: File) {
+  async function chooseFile(file: File, notice = '') {
     stopPending();
     const ticket = ++revision.current;
     setState(previous => ({
@@ -77,31 +108,12 @@ export function useWorkbench() {
       let source: string;
       try { source = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes); }
       catch { throw new SvgError('This file is not valid UTF-8. Re-export the SVG using UTF-8 encoding.'); }
-      if (revision.current === ticket) updateSource(source, file.name);
+      if (revision.current === ticket) updateSource(source, file.name, notice);
     } catch (error) { if (revision.current === ticket) fail(error); }
   }
 
-  async function optimize(precision = state.precision) {
-    if (!state.baseline) return;
-    stopPending();
-    const ticket = revision.current;
-    const baseline = state.baseline;
-    let job: ReturnType<typeof startOptimization> | null = null;
-    setState(previous => ({ ...previous, precision, status: 'optimizing', error: null, notice: '' }));
-    try {
-      job = startOptimization(baseline, precision);
-      activeJob.current = job;
-      const output = await job.promise;
-      const text = await validateOutput(baseline, output);
-      if (revision.current !== ticket || activeJob.current !== job) return;
-      activeJob.current = null;
-      setState(previous => ({ ...previous, result: { text, precision }, status: 'done' }));
-    } catch (error) {
-      if (revision.current === ticket && (job === null || activeJob.current === job)) {
-        activeJob.current = null;
-        fail(error);
-      }
-    }
+  function optimize() {
+    if (state.baseline) void run(state.baseline, state.precision);
   }
 
   function cancel() {
@@ -114,16 +126,15 @@ export function useWorkbench() {
 
   function setPrecision(precision: number) {
     setState(previous => ({ ...previous, precision }));
-    if (state.result) void optimize(precision);
+    if (state.baseline) void run(state.baseline, precision);
   }
 
-  function reset() {
+  function clear() {
     stopPending();
     revision.current++;
-    if (!state.baseline) { updateSource('', ''); return; }
     setState(previous => ({
-      ...previous, precision: 3, result: null, status: 'ready', error: null,
-      notice: 'Reset to the safe original. Your source code is unchanged.',
+      ...previous, source: '', name: '', baseline: null, result: null, status: 'idle', error: null,
+      notice: previous.source ? 'Cleared. Paste, drop or choose another SVG.' : '',
     }));
   }
 
@@ -138,5 +149,5 @@ export function useWorkbench() {
 
   function announce(notice: string) { setState(previous => ({ ...previous, notice })); }
 
-  return { state, updateSource, chooseFile, optimize, cancel, setPrecision, reset, previewFailed, announce };
+  return { state, updateSource, chooseFile, optimize, cancel, setPrecision, clear, previewFailed, announce };
 }

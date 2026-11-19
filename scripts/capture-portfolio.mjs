@@ -19,10 +19,6 @@ const page = await context.newPage();
 await page.goto('http://127.0.0.1:4173');
 await expect(page.getByRole('button', { name: 'Load example' })).toBeEnabled();
 await page.screenshot({ path: join(directory, 'desktop-empty.png'), fullPage: true, animations: 'disabled' });
-await page.getByRole('button', { name: 'Load example' }).click();
-await expect(page.getByRole('button', { name: 'Optimize SVG' })).toBeEnabled();
-const source = await page.getByLabel('SVG source code', { exact: true }).inputValue();
-await writeFile(join(directory, 'studio-leaf.svg'), source);
 await page.evaluate(() => {
   const times = [];
   let start = 0;
@@ -36,10 +32,13 @@ await page.evaluate(() => {
   }).observe(workspace, { attributes: true, attributeFilter: ['data-status'] });
   Reflect.set(window, 'optimizationTimes', times);
 });
+// Each load validates the example and optimizes it automatically.
 for (let index = 0; index < 5; index++) {
-  await page.getByRole('button', { name: 'Optimize SVG' }).click();
+  await page.getByRole('button', { name: 'Load example' }).click();
   await expect(page.locator('.workbench')).toHaveAttribute('data-status', 'done');
 }
+const source = await page.getByLabel('SVG source code', { exact: true }).inputValue();
+await writeFile(join(directory, 'studio-leaf.svg'), source);
 const output = await page.getByLabel('Optimized SVG code').inputValue();
 assert(output.includes('leaf-title') && output.includes('leaf-mask'));
 assert(Buffer.byteLength(output) < Buffer.byteLength(source));
@@ -51,7 +50,7 @@ const measurements = {
   fixture: 'studio-leaf.svg', precision: 3,
   sourceBytes: Buffer.byteLength(source), baselineBytes, resultBytes: Buffer.byteLength(output),
   optimizationStateDurationsMs: await page.evaluate(() => Reflect.get(window, 'optimizationTimes')),
-  timingMethod: 'Five optimizing-to-done UI state transitions on the example fixture. Includes worker startup and output validation; excludes image decode. First run may include a cold module load. Not a general performance guarantee.',
+  timingMethod: 'Five optimizing-to-done UI state transitions, each after loading the example fixture. Includes worker startup and output validation; excludes image decode. First run may include a cold module load. Not a general performance guarantee.',
 };
 assert.equal(measurements.optimizationStateDurationsMs.length, 5);
 await writeFile(join(directory, 'measurements.json'), JSON.stringify(measurements, null, 2) + '\n');
@@ -73,9 +72,6 @@ await expect(demo.getByRole('button', { name: 'Load example' })).toBeEnabled();
 // Hold real workflow states long enough to read in the silent walkthrough.
 await demo.waitForTimeout(4000);
 await demo.getByRole('button', { name: 'Load example' }).click();
-await expect(demo.getByRole('button', { name: 'Optimize SVG' })).toBeEnabled();
-await demo.waitForTimeout(4500);
-await demo.getByRole('button', { name: 'Optimize SVG' }).click();
 await expect(demo.locator('.workbench')).toHaveAttribute('data-status', 'done');
 await demo.waitForTimeout(6000);
 await demo.getByLabel('Precision', { exact: true }).selectOption('5');
@@ -88,7 +84,7 @@ const downloaded = demo.waitForEvent('download');
 await demo.getByRole('button', { name: 'Download SVG' }).click();
 assert.equal((await downloaded).suggestedFilename(), 'studio-leaf.optimized.svg');
 await demo.waitForTimeout(4500);
-await demo.getByRole('button', { name: 'Reset', exact: true }).click();
+await demo.getByRole('button', { name: 'Clear', exact: true }).click();
 await demo.waitForTimeout(2500);
 await recording.close();
 await rename(await video.path(), join(directory, 'walkthrough.webm'));

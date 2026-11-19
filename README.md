@@ -28,13 +28,13 @@ Production preview: `http://127.0.0.1:4173`. Keep that process running while usi
 
 ## Workflow
 
-1. Choose a `.svg` file or paste SVG XML. **Load example** loads original studio artwork without replacing anything on disk.
-2. Validation creates the safe baseline and enables **Optimize SVG**.
-3. Inspect before/after images at 256 px and 24 px. The first image is the sanitized baseline, not unsanitized source markup.
-4. Choose precision 2–5. Changing precision after a completed result reruns from the baseline, avoiding accumulated rounding.
+1. Choose a `.svg` file, drop one onto the workspace, or paste SVG XML. **Load example** loads original studio artwork without replacing anything on disk. When several files are dropped, only the first is loaded.
+2. Validation creates the safe baseline and optimization starts automatically in the worker.
+3. Inspect before/after images at 256 px and 24 px on a grid, light, or dark background. The first image is the sanitized baseline, not unsanitized source markup.
+4. Choose precision 2–5 (default 3). Changing precision reruns from the baseline, avoiding accumulated rounding.
 5. Copy code or download `<safe-name>.optimized.svg`. Input without an active filename uses `asset.optimized.svg`; editing a selected file retains its name.
 
-**Reset** restores precision 3 and removes the optimized result while keeping the original source and safe baseline. **Cancel** terminates the worker and preserves the previous completed result for the same input, including its precision. Changing input invalidates old output. An interrupted job cannot overwrite new input.
+**Clear** empties the source, filename, and results; the chosen precision stays. **Cancel** terminates the worker and preserves the previous completed result for the same input, including its precision. After a cancel or a failed run, **Optimize SVG** retries from the same baseline. Changing input invalidates old output. An interrupted job cannot overwrite new input.
 
 ## Supported SVGs
 
@@ -70,9 +70,9 @@ npx playwright install chromium firefox webkit
 npm run test:e2e
 ```
 
-Playwright starts or reuses the local production-preview server. It exercises real DOM parsing/sanitization, hostile fixtures, uploads from the local file picker, downloads, keyboard use, privacy, clipboard recovery, worker failure states, and 360 px layout. Tests use a temporary directory outside the repository. Native clipboard success runs in Chromium; Firefox/WebKit cover denied-clipboard recovery.
+Playwright starts or reuses the local production-preview server. It exercises real DOM parsing/sanitization, hostile fixtures, uploads from the local file picker and drag-and-drop, downloads, keyboard use, privacy, clipboard recovery, worker failure states, and 360 px layout. Tests use a temporary directory outside the repository. Native clipboard success runs in Chromium; Firefox/WebKit cover denied-clipboard recovery.
 
-The local acceptance run passed 11 unit tests and 40 browser scenarios across Chromium, Firefox, and WebKit, with two intentional clipboard skips. Native Safari and physical phones remain untested. No test result is a security or accessibility certification.
+The local acceptance run passed 11 unit tests and 46 browser scenarios across Chromium, Firefox, and WebKit, with two intentional clipboard skips. Native Safari and physical phones remain untested. No test result is a security or accessibility certification.
 
 ## Deploy on Cloudflare Pages Free
 

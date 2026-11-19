@@ -158,14 +158,14 @@ export async function validateOutput(baseline: string, output: string): Promise<
   const after = parseSvg(safe);
   for (const attribute of ['viewBox', 'width', 'height', 'preserveAspectRatio']) {
     if (before.documentElement.getAttribute(attribute) !== after.documentElement.getAttribute(attribute)) {
-      throw new SvgError('Optimization changed required SVG dimensions. Reset and keep the original.', 'PROCESSING_FAILED');
+      throw new SvgError('Optimization changed required SVG dimensions. Try a higher precision or keep the original file.', 'PROCESSING_FAILED');
     }
   }
   const identity = (document: XMLDocument) => Array.from(document.querySelectorAll('[id], title, desc'))
     .map(element => [element.localName, element.getAttribute('id'),
       element.localName === 'title' || element.localName === 'desc' ? element.textContent : null]);
   if (JSON.stringify(identity(before)) !== JSON.stringify(identity(after))) {
-    throw new SvgError('Optimization changed SVG IDs or accessibility metadata. Reset and keep the original.', 'PROCESSING_FAILED');
+    throw new SvgError('Optimization changed SVG IDs or accessibility metadata. Keep the original file for this SVG.', 'PROCESSING_FAILED');
   }
   return safe;
 }

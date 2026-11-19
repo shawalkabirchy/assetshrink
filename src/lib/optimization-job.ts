@@ -20,7 +20,7 @@ export function startOptimization(source: string, precision: number) {
     };
     worker.onmessage = (event: MessageEvent) => {
       if (typeof event.data?.result === 'string') finish(undefined, event.data.result);
-      else finish(new SvgError('The SVG could not be optimized. Reset or try another SVG.', 'PROCESSING_FAILED'));
+      else finish(new SvgError('The SVG could not be optimized. Clear the input or try another SVG.', 'PROCESSING_FAILED'));
     };
     worker.onerror = (event) => {
       event.preventDefault();
