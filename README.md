@@ -49,7 +49,7 @@ Precision can alter fine geometry. Compare both preview sizes and increase preci
 
 ## Architecture
 
-- Next.js **16.4.3**, App Router, React **19.3.1**, TypeScript **7.0.2**, plain CSS, npm.
+- Next.js **16.4.6**, App Router, React **19.3.1**, TypeScript **7.0.2**, plain CSS, npm.
 - `output: 'export'` produces a static `out` directory. No Pages Functions, server adapter, or runtime Node.js service is required.
 - `src/lib/svg.ts`: inert XML parsing, explicit SVG allowlists, local-reference checks, DOMPurify **3.4.17**, and output validation.
 - `src/lib/optimize.ts`: conservative SVGO **4.1.0** configuration.
